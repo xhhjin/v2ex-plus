@@ -4,6 +4,8 @@ Chrome Web Store: [v2ex plus](https://chrome.google.com/webstore/detail/daeclijm
 
 Firefox Add-ons: [v2ex plus](https://addons.mozilla.org/zh-CN/firefox/addon/v2ex-plus9/)
 
+Offline install: [v2ex plus](https://github.com/sciooga/v2ex-plus/releases)
+
 反馈： [点击(sciooga#gmail)](mailto:sciooga@gmail.com)
 
 感谢 [ldong](https://github.com/ldong) 和 [GPU](https://www.v2ex.com/member/GPU) 发布 Chrome 版扩展。

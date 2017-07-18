@@ -166,14 +166,14 @@ function input_img(input_img_base64, this_img_id){
         }
     });
 
-    chrome.runtime.sendMessage({get_replySetting: 't'}, function(response) {
+    chrome.runtime.sendMessage({action: 'get_replySetting'}, function(response) {
         var topic_height = _topic.height();
         r = parseInt((response.replyColor).substring(1,3),16);
         g = parseInt((response.replyColor).substring(3,5),16);
         b = parseInt((response.replyColor).substring(5,7),16);
         replyColor = r+','+g+','+b+','+response.replyA;
         $('.keyUser').css('backgroundColor', 'rgba('+ replyColor +')');//设置楼主回复背景颜色
-        if (!response.fold){//折叠超长主题
+        if (response.fold){//折叠超长主题
             if (topic_height>1800){
                 _topic_content.css({maxHeight:'600px', overflow:'hidden', transition:'max-height 2s'});
                 $('.subtle', _topic).hide();
@@ -697,7 +697,7 @@ _r_c[0].addEventListener("drop",function(e){
 
 
 //——————————————————————————————————回复楼层号——————————————————————————————————
-chrome.runtime.sendMessage({get_replyUser: 't'}, function(response) {
+chrome.runtime.sendMessage({action: 'get_replyUser'}, function(response) {
     if (response.replyUser){
         $('[alt="Reply"]').click(function(){
             var self = this;

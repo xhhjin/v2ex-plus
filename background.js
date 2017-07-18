@@ -7,24 +7,14 @@ if (typeof browser === 'undefined' &&
     }
 
 browser.runtime.onInstalled.addListener(function(e){
-    // Open options page if it's first install
+    // Open options page to initialize localStorage
     if (e.reason === 'install')
         browser.runtime.openOptionsPage();
+    if (e.reason === 'update')
+        replyUser = localStorage.getItem('replyUser')
+        if ( replyUser === null )
+            localStorage.setItem('replyUser', 1)
 
-    // Versions before 1.2.0 use cookies and need reset
-    // 1.2.0 was released without updating migration
-    // Should be safe to remove after 1.3.0 is released
-    if (e.reason === 'update' &&
-        e.previousVersion === '1.2.0' ||
-        e.previousVersion.substring(0,3) !== '1.2'){
-        browser.notifications.create({
-            type   : 'basic',
-            iconUrl: 'icon/icon38_msg.png',
-            title  : '我们刚刚进行了更新',
-            message: '存储配置的方式得到了优化，但是先前的配置都将被重设。如有需要请在配置页面中重新设置。',
-        });
-        browser.runtime.openOptionsPage();
-    }
 });
 
 //——————————————————————————————————接收来自页面的图片数据上传并返回——————————————————————————————————
@@ -78,38 +68,52 @@ browser.runtime.onMessage.addListener(function(request, sender, sendResponse) {
             }
         });
         return true;
+    }
 //——————————————————————————————————接收来自页面的图片数据上传并返回——————————————————————————————————
 
 
 //——————————————————————————————————返回设置选项——————————————————————————————————
-
-    }else if ( request.get_preview_status ){
-        sendResponse({preview_status: Number(s.getItem('preview'))});
-    }else if ( request.get_dblclickToTop ){
-        sendResponse({dblclickToTop: Number(s.getItem('dblclickToTop'))});
-    }else if ( request.get_replySetting ){
-        sendResponse({replyColor: s.getItem('replyColor'), replyA: s.getItem('replyA'), fold: s.getItem('fold'), thankColor: s.getItem('thankColor')});
-    }else if ( request.get_newWindow_status ){
-        sendResponse({newWindow_status: Number(s.getItem('newWindow'))});
-    }else if ( request.get_replyUser ){
-        sendResponse({replyUser: Number(s.getItem('replyUser'))});
-    }else if ( request.get_blockList ){
-        $.get("https://www.v2ex.com",function(data,status){
-            if(status == 'success'){
-                var block_list = /blocked = \[(.*?)\];/.exec(data);
-                var username = /首页<\/a>\&nbsp\;\&nbsp\;\&nbsp\;<a href="\/member\/(.+?)"/.exec(data);
-                if ( block_list && username ){
-                    block_list = block_list[1];
-                    username = username[1];
-                    browser.tabs.create({url:"/page/block_list.html#"+username+'='+block_list});
+    switch (request.action) {
+        case 'get_preview_status':
+            sendResponse({preview_status: Number(s.getItem('preview'))});
+            break;
+        case 'get_dblclickToTop':
+            sendResponse({dblclickToTop: Number(s.getItem('dblclickToTop'))});
+            break;
+        case 'get_replySetting':
+            sendResponse({
+                replyColor: s.getItem('replyColor'),
+                replyA: s.getItem('replyA'),
+                fold: Number(s.getItem('fold')),
+                thankColor: s.getItem('thankColor')
+            });
+            break;
+        case 'get_newWindow_status':
+            sendResponse({newWindow_status: Number(s.getItem('newWindow'))});
+            break;
+        case 'get_replyUser':
+            sendResponse({replyUser: Number(s.getItem('replyUser'))});
+            break;
+        case 'get_blockList':
+            $.get("https://www.v2ex.com",function(data,status){
+                if(status == 'success'){
+                    var block_list = /blocked = \[(.*?)\];/.exec(data);
+                    var username = /首页<\/a>\&nbsp\;\&nbsp\;\&nbsp\;<a href="\/member\/(.+?)"/.exec(data);
+                    if ( block_list && username ){
+                        block_list = block_list[1];
+                        username = username[1];
+                        browser.tabs.create({url:"/page/block_list.html#"+username+'='+block_list});
+                    }else{
+                        alert('扩展没有获取到任何信息 : (\n或许是您未登录 V2EX 账号');
+                    }
                 }else{
-                    alert('扩展没有获取到任何信息 : (\n或许是您未登录 V2EX 账号');
+                    alert('扩展没有获取到任何信息 : (\n很有可能是网络问题，请稍后再试');
                 }
-            }else{
-                alert('扩展没有获取到任何信息 : (\n很有可能是网络问题，请稍后再试');
-            }
-        });
-        sendResponse({blockList: 'get'});
+            });
+            sendResponse({blockList: 'get'});
+            break;
+        default:
+            throw 'invaild action';
     }
 });
 
